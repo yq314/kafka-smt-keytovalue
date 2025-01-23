@@ -6,7 +6,7 @@
 
     <groupId>com.github.yq314.kafka.connect.transform</groupId>
     <artifactId>key-to-value</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
 
     <properties>
