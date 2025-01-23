@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.kafka.connect.transforms.util.Requirements.requireMap;
 import static org.apache.kafka.connect.transforms.util.Requirements.requireStruct;
@@ -131,7 +132,13 @@ public class KeyToValue<R extends ConnectRecord<R>> implements Transformation<R>
             for (Field field: value.schema().fields()) {
                 valueSchemaBuilder.field(field.name(), field.schema());
             }
+
+            Set<String> valueFields = value.schema().fields().stream().map(Field::name).collect(Collectors.toSet());
             for (String field : keysToCopy.keySet()) {
+                if (valueFields.contains(field)) {
+                    continue;
+                }
+
                 if (keySchemaMap == null) {
                     valueSchemaBuilder.field(field, Schema.OPTIONAL_STRING_SCHEMA);
                 } else {

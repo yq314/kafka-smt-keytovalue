@@ -107,4 +107,47 @@ public class KeyToValueTest {
         Assert.assertEquals(key, transformedRecord.key());
         Assert.assertEquals(expectedValue, transformedRecord.value());
     }
+
+    @Test
+    public void withSchemaSkipDuplicates() {
+        Map<String, String> config = new HashMap<>(2);
+        config.put("fields.include", "a,b");
+        config.put("fields.exclude", "a");
+        xform.configure(config);
+
+        final Schema keySchema = SchemaBuilder.struct()
+                .field("a", Schema.INT32_SCHEMA)
+                .field("b", Schema.INT32_SCHEMA)
+                .field("c", Schema.INT32_SCHEMA)
+                .build();
+
+        final Struct key = new Struct(keySchema);
+        key.put("a", 1);
+        key.put("b", 2);
+        key.put("c", 3);
+
+        final Schema valueSchema = SchemaBuilder.struct()
+                .field("b", Schema.INT32_SCHEMA)
+                .field("e", Schema.INT32_SCHEMA)
+                .build();
+
+        final Struct value = new Struct(valueSchema);
+        value.put("b", 1);
+        value.put("e", 1);
+
+        final SinkRecord record = new SinkRecord("", 0, keySchema, key, valueSchema, value, 0);
+        final SinkRecord transformedRecord = xform.apply(record);
+
+        final Schema expectedValueSchema = SchemaBuilder.struct()
+                .field("b", Schema.INT32_SCHEMA)
+                .field("e", Schema.INT32_SCHEMA)
+                .build();
+        final Struct expectedValue = new Struct(expectedValueSchema)
+                .put("b", 2)
+                .put("e", 1);
+
+        Assert.assertEquals(keySchema, transformedRecord.keySchema());
+        Assert.assertEquals(key, transformedRecord.key());
+        Assert.assertEquals(expectedValue, transformedRecord.value());
+    }
 }
